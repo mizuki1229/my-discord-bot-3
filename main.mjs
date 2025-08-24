@@ -40,7 +40,7 @@ client.on("messageCreate", async (message) => {
   } else if (level >= 5 && level <= 7) {
     targetChannelName = "レベル5～7";
   } else if (level >= 8 && level <= 10) {
-    targetChannelName = "レベル8〜10";
+    targetChannelName = "レベル8～10";
   } else if (level >= 11 && level <= 15) {
     targetChannelName = "レベル11～15";
   } else if (level >= 16) {
@@ -94,3 +94,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Webサーバー起動中: ${port}`);
 });
+
+
