@@ -1,6 +1,7 @@
 // main.mjs
 import { Client, GatewayIntentBits } from "discord.js";
 import "dotenv/config";
+import express from "express"; // 追加
 
 const client = new Client({
   intents: [
@@ -23,13 +24,13 @@ client.on("messageCreate", async (message) => {
   // 「#数字 スペース 8文字 本文...」をキャッチ
   const match = message.content.match(/^#(\d+)\s(.{8})(?:\s+([\s\S]*))?/);
   if (!match) {
-    await message.delete().catch(() => {}); // フォーマット外も削除するならここ
+    await message.delete().catch(() => {});
     return;
   }
 
   const level = parseInt(match[1], 10);
-  const userIdLike = match[2];     // 8文字部分
-  const restText = match[3] || ""; // 本文（なければ空）
+  const userIdLike = match[2];
+  const restText = match[3] || "";
 
   let targetChannelName = null;
   if (level === 0) {
@@ -39,16 +40,15 @@ client.on("messageCreate", async (message) => {
   } else if (level >= 5 && level <= 7) {
     targetChannelName = "レベル5～7";
   } else if (level >= 8 && level <= 10) {
-    targetChannelName = "レベル8〜10"; // ← 実際のチャンネル名に合わせる
+    targetChannelName = "レベル8〜10";
   } else if (level >= 11 && level <= 15) {
     targetChannelName = "レベル11～15";
   } else if (level >= 16) {
-    // 無効レベルの警告メッセージを送信
     const warn = await message.channel.send("⚠️ このレベルは無効です");
     setTimeout(() => {
       warn.delete().catch(() => {});
-    }, 5000); // 5秒後に削除
-    await message.delete().catch(() => {}); // 元の投稿も削除
+    }, 5000);
+    await message.delete().catch(() => {});
     return;
   }
 
@@ -60,17 +60,15 @@ client.on("messageCreate", async (message) => {
 
     if (targetChannel) {
       if (level === 0) {
-        // レベル0は本文だけ送信
         await targetChannel.send(userIdLike);
       } else {
-        // レベル付きは本文+埋め込み
         await targetChannel.send({
-          content: userIdLike, // コピーできるのはこれだけ
+          content: userIdLike,
           embeds: [
             {
               title: `レベル${level}`,
               description: restText || "（本文なし）",
-              color: 0x00aa00, // Embed の色
+              color: 0x00aa00,
             },
           ],
         });
@@ -78,8 +76,21 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // 元の「お助け募集」のメッセージを削除
   await message.delete().catch(() => {});
 });
 
 client.login(process.env.TOKEN);
+
+// ----------------------------
+// Render用のWebサーバー追加
+// ----------------------------
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Bot is running!"); // Renderがポート検出するため
+});
+
+app.listen(port, () => {
+  console.log(`Webサーバー起動中: ${port}`);
+});
